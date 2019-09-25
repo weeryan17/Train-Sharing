@@ -5,6 +5,7 @@ const express = require('express');
 const path = require('path');
 const logger = require('morgan');
 
+// @ts-ignore
 const fs = require('fs');
 //const formidableMiddleware = require('express-formidable');
 

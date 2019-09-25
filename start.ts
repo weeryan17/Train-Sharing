@@ -3,9 +3,17 @@
 
 // @ts-ignore
 var path = require('path');
+var mysql = require('mysql');
+// @ts-ignore
+var fs = require('fs');
+
+var config = JSON.parse(fs.readFileSync("config.json"));
 
 // @ts-ignore
 global["appRoot"] = path.resolve(__dirname) + '/';
+
+// @ts-ignore
+global["pool"] = mysql.createPool(config.database);
 
 /**
  * Module dependencies.
