@@ -1,0 +1,6 @@
+[submodule "minecraft-three-model"]
+	path = minecraft-three-model
+	url = https://github.com/InfinityStudio/minecraft-three-model
+[submodule "minecraft-resource-manager-js"]
+	path = minecraft-resource-manager-js
+	url = https://github.com/InfinityStudio/minecraft-resource-manager-js
