@@ -1,4 +1,5 @@
 var createError = require('http-errors');
+// @ts-ignore
 const express = require('express');
 // @ts-ignore
 const path = require('path');
@@ -23,63 +24,54 @@ readRoutesDir('.');
 function readRoutesDir(parent: string) {
     // @ts-ignore
     var dir = path.join(global.appRoot, 'routes', parent);
-    fs.readdir(dir, async function (err: any, items: string[]) {
-        if (err) {
-            console.log(err);
-            return;
-        }
+    var items = fs.readdirSync(dir);
 
-        for (let i: number = 0; i < items.length; i++) {
-            let item: string = items[i];
-            let name: string = item.split('.')[0];
-            let type: string = item.split('.')[1];
 
-            if (type != 'js') {
-                if (fs.lstatSync('./routes/' + parent + '/' + item).isDirectory()) {
-                    if (parent == '.') {
-                        await readRoutesDir(item);
-                    } else {
-                        await readRoutesDir(parent + '/' + item);
-                    }
-                    continue;
+    for (let i: number = 0; i < items.length; i++) {
+        let item: string = items[i];
+        var split: string[] = item.split('.');
+        let name: string = item.split('.')[0];
+        let type: string = split[split.length - 1];
+
+        if (type != 'js') {
+            if (fs.lstatSync('./routes/' + parent + '/' + item).isDirectory()) {
+                if (parent == '.') {
+                    readRoutesDir(item);
                 } else {
-                    continue;
+                    readRoutesDir(parent + '/' + item);
                 }
-            }
-
-            if (name == 'index') {
-                name = '';
-            }
-
-            var router = require('./routes/' + parent + '/' + item);
-
-            if (parent == '.') {
-                app.use('/' + name, router);
+                continue;
             } else {
-                app.use('/' + parent + '/' + name, router);
+                continue;
             }
         }
-    });
+
+        if (name == 'index') {
+            name = '';
+        }
+
+        var router_path = './routes/' + parent + '/' + item;
+
+        console.log(router_path);
+
+        var router = require(router_path);
+
+        if (parent == '.') {
+            app.use('/' + name, router);
+        } else {
+            app.use('/' + parent + '/' + name, router);
+        }
+    }
 }
-
-/*app.use(function (req: any, res: any, next: any) {
-    var error = {"message": "Page not found", "status": 404};
-    console.log("past create error");
-    next(error);
-});*/
-
-console.log("creating error handler");
 
 // error handler
 app.use(function (req: any, res: any) {
-    console.log("handling error");
-    // set locals, only providing error in development
     res.locals.message = "Page not found";
     res.locals.status = 404;
 
     // render the error page
     res.status(404);
-    res.render('error', { title: 'Error' });
+    res.render('error', {title: 'Error'});
 });
 
 module.exports = app;
