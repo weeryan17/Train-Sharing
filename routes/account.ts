@@ -11,3 +11,7 @@ passport.use(new localStrategy(function (username : string, password : string, d
     //TODO handle users from database
     done(null, username)
 }));
+
+passport.use(new discordStrategy(config.discord), function (accessToken : string, refreshToken : string, profile : object, cb : any) {
+    
+});

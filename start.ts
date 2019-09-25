@@ -14,6 +14,8 @@ global["appRoot"] = path.resolve(__dirname) + '/';
 
 // @ts-ignore
 global["pool"] = mysql.createPool(config.database);
+// @ts-ignore
+global["config"] = config;
 
 /**
  * Module dependencies.

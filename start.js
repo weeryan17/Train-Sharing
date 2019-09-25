@@ -5,6 +5,7 @@ var fs = require('fs');
 var config = JSON.parse(fs.readFileSync("config.json"));
 global["appRoot"] = path.resolve(__dirname) + '/';
 global["pool"] = mysql.createPool(config.database);
+global["config"] = config;
 var app = require('./app.js');
 var debug = require('debug')('site:server');
 var http = require('http');
