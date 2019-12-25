@@ -1,13 +1,10 @@
-var passport = require("passport");
-var oauth2 = require("passport-oauth2");
-
 // @ts-ignore
 var express = require('express');
 var router = express.Router();
 
-passport.use(new oauth2({
+router.get('/login', passport.authenticate('oauth2'));
+router.get('/login/callback', passport.authenticate('oauth2', { failureRedirect: '/login' }), function (req: any, res: any) {
+    res.send("works!")
+});
 
-    },
-    function (accessToken : string, refreshToken : string, profile : object, cb: any) {
-
-    }));
+module.exports = router;

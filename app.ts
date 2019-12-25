@@ -1,10 +1,30 @@
 var createError = require('http-errors');
+
 // @ts-ignore
 const express = require('express');
 // @ts-ignore
 const path = require('path');
 const logger = require('morgan');
+const flash = require('connect-flash');
 
+const passport = require('passport');
+const oAuth2Strategy = require('passport-oauth2');
+
+passport.serializeUser(function(user : any, done : any) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user : any, done : any) {
+    done(null, user);
+});
+// @ts-ignore
+passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken: string, refreshToken: string, profile: {id: number}, cb: (err: any, user: {id: number}) => void) {
+    console.log(accessToken + " " + refreshToken);
+    return cb(null, {id: profile.id});
+}));
+
+// @ts-ignore
+global["passport"] = passport;
 // @ts-ignore
 const fs = require('fs');
 //const formidableMiddleware = require('express-formidable');
@@ -18,6 +38,21 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 // @ts-ignore
 app.use('/public', express.static(path.join(global.appRoot, 'public')));
+
+app.use(require('cookie-parser')());
+app.use(require('body-parser').urlencoded({extended: true}));
+
+var session = require('express-session');
+var fileStore = require('session-file-store')(session);
+
+app.use(session({
+    store: new fileStore({}),
+    secret: config.session.secret
+}));
+
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 //app.use(formidableMiddleware());
 
 readRoutesDir('.');

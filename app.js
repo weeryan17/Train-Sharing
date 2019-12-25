@@ -2,6 +2,20 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
+var flash = require('connect-flash');
+var passport = require('passport');
+var oAuth2Strategy = require('passport-oauth2');
+passport.serializeUser(function (user, done) {
+    done(null, user);
+});
+passport.deserializeUser(function (user, done) {
+    done(null, user);
+});
+passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken, refreshToken, profile, cb) {
+    console.log(accessToken + " " + refreshToken);
+    return cb(null, { id: profile.id });
+}));
+global["passport"] = passport;
 var fs = require('fs');
 var app = express();
 app.set('view engine', 'ejs');
@@ -9,6 +23,17 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/public', express.static(path.join(global.appRoot, 'public')));
+app.use(require('cookie-parser')());
+app.use(require('body-parser').urlencoded({ extended: true }));
+var session = require('express-session');
+var fileStore = require('session-file-store')(session);
+app.use(session({
+    store: new fileStore({}),
+    secret: config.session.secret
+}));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 readRoutesDir('.');
 function readRoutesDir(parent) {
     var dir = path.join(global.appRoot, 'routes', parent);
