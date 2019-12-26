@@ -70,7 +70,7 @@ function readRoutesDir(parent: string) {
         let type: string = split[split.length - 1];
 
         if (type != 'js') {
-            if (fs.lstatSync('./routes/' + parent + '/' + item).isDirectory()) {
+            if (fs.lstatSync('./src/routes/' + parent + '/' + item).isDirectory()) {
                 if (parent == '.') {
                     readRoutesDir(item);
                 } else {

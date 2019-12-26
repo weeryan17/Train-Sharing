@@ -2,4 +2,8 @@
 
 node_modules/
 config.json
+
 sessions/
+
+src/**/*.js
+src/**/*.js.map
