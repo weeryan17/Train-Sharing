@@ -2,8 +2,10 @@
 var express = require('express');
 var router = express.Router();
 
-router.get('/login', passport.authenticate('oauth2'));
-router.get('/login/callback', passport.authenticate('oauth2', { failureRedirect: '/login' }), function (req: any, res: any) {
+// @ts-ignore
+router.get('/login', global.passport.authenticate('oauth2'));
+// @ts-ignore
+router.get('/login/callback', global.passport.authenticate('oauth2', { failureRedirect: '/login' }), function (req: any, res: any) {
     res.send("works!")
 });
 

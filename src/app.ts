@@ -1,5 +1,3 @@
-var createError = require('http-errors');
-
 // @ts-ignore
 const express = require('express');
 // @ts-ignore
@@ -10,17 +8,80 @@ const flash = require('connect-flash');
 const passport = require('passport');
 const oAuth2Strategy = require('passport-oauth2');
 
-passport.serializeUser(function(user : any, done : any) {
+import ApolloClient from 'apollo-client'
+import gql from 'graphql-tag';
+import fetch from 'node-fetch';
+import { createHttpLink } from 'apollo-link-http'
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { setContext } from 'apollo-link-context';
+
+oAuth2Strategy.prototype.userProfile = function (accessToken: string, done: (err: any, user: { id: number }) => void) {
+    // @ts-ignore
+    const authLink = setContext((_, { headers }) => {
+        return {
+            headers: {
+                ...headers,
+                authorization: accessToken ? `Bearer ${accessToken}` : "",
+            }
+        }
+    });
+
+    const httpLink = createHttpLink({
+        uri: "http://localhost:3000/api/user",
+        // @ts-ignore
+        fetch: fetch
+    });
+
+    const graphqlClient = new ApolloClient({
+        link: authLink.concat(httpLink),
+        cache: new InMemoryCache()
+    });
+
+    graphqlClient.query({
+        query: gql`
+            query Query {
+                user {
+                    id
+                }
+            }
+        `,
+        // @ts-ignore
+    }).then(data => {
+        done(null, data.data.user);
+        // @ts-ignore
+    }).catch(error => {
+        done(error, null);
+    });
+};
+
+passport.serializeUser(function (user: any, done: any) {
     done(null, user);
 });
 
-passport.deserializeUser(function(user : any, done : any) {
+passport.deserializeUser(function (user: any, done: any) {
     done(null, user);
 });
 // @ts-ignore
-passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken: string, refreshToken: string, profile: {id: number}, cb: (err: any, user: {id: number}) => void) {
-    console.log(accessToken + " " + refreshToken);
-    return cb(null, {id: profile.id});
+passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken: string, refreshToken: string, profile: { id: number }, cb: (err: any, user: { id: number }) => void) {
+    // @ts-ignore
+    global.pool.getConnection(function (err: any, connection: any) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+
+        connection.query("INSERT INTO traincarts_sharing_users (id, access_token, refresh_token) VALUES (?, ?, ?)",
+            [profile.id, accessToken, refreshToken],
+            function (err: any) {
+                connection.release();
+                if (err) {
+                    console.error(err);
+                    return cb(err, null);
+                }
+
+                return cb(null, {id: profile.id});
+            });
+    });
 }));
 
 // @ts-ignore
@@ -42,11 +103,19 @@ app.use('/public', express.static(path.join(global.appRoot, 'public')));
 app.use(require('cookie-parser')());
 app.use(require('body-parser').urlencoded({extended: true}));
 
+var redis = require('redis');
+// @ts-ignore
+var redisClient = redis.createClient(global.config.redis);
+
+redisClient.on("error", function (err: any) {
+    console.error(err);
+});
+
 var session = require('express-session');
-var fileStore = require('session-file-store')(session);
+var redisStore = require('connect-redis')(session);
 
 app.use(session({
-    store: new fileStore({}),
+    store: new redisStore({client: redisClient}),
     secret: config.session.secret
 }));
 
@@ -59,7 +128,7 @@ readRoutesDir('.');
 
 function readRoutesDir(parent: string) {
     // @ts-ignore
-    var dir = path.join(global.appRoot, 'routes', parent);
+    var dir = path.join(global.appRoot, 'src/routes', parent);
     var items = fs.readdirSync(dir);
 
 
@@ -102,12 +171,21 @@ function readRoutesDir(parent: string) {
 
 // error handler
 app.use(function (req: any, res: any) {
-    res.locals.message = "Page not found";
-    res.locals.status = 404;
+    if (req.app.locals.message === undefined) {
+        req.app.locals.message = "Page not found";
+        req.app.locals.status = 404;
+    }
+    var error: boolean | any = false;
+    if (req.app.locals.error !== undefined) {
+        error = req.app.locals.error;
+        if (req.app.locals.status === undefined) {
+            req.app.locals.status = 500;
+        }
+    }
 
     // render the error page
-    res.status(404);
-    res.render('error', {title: 'Error'});
+    res.sendStatus(req.app.locals.status);
+    res.render('error', {title: 'Error', messages: req.messages, error: error});
 });
 
 module.exports = app;

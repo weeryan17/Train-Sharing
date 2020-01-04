@@ -1,0 +1,14 @@
+{
+  "name": "Traincarts",
+  "description": "Here is where you share any traincarts specific stuff like trains or tcc coaster",
+  "type": "parent",
+  "fields": [
+    {
+      "name": "Hastebin link/id",
+      "tooltip": "Link or id from hastebin (Note: id only works if using paste.traincarts.net)",
+      "type": "txt",
+      "period": "create",
+      "required": true
+    }
+  ]
+}

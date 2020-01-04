@@ -1,6 +1,3 @@
-#!/usr/bin/env node
-///<reference path="node_modules/@types/node/globals.d.ts"/>
-
 // @ts-ignore
 var path = require('path');
 var mysql = require('mysql');
@@ -10,10 +7,20 @@ var fs = require('fs');
 var config = JSON.parse(fs.readFileSync("config.json"));
 
 // @ts-ignore
-global["appRoot"] = path.resolve(__dirname) + '/';
+global["appRoot"] = path.resolve(__dirname) + '/../';
+
+var mysql_config = config.database;
+mysql_config.typeCast = function castField(field: any, useDefaultTypeCasting: any) {
+    if ((field.type === "BIT") && (field.length === 1)) {
+        var bytes = field.buffer();
+        return (bytes[0] === 1);
+    }
+
+    return (useDefaultTypeCasting());
+};
 
 // @ts-ignore
-global["pool"] = mysql.createPool(config.database);
+global["pool"] = mysql.createPool(mysql_config);
 // @ts-ignore
 global["config"] = config;
 

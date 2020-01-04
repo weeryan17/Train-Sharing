@@ -1,0 +1,15 @@
+{
+  "name": "Train",
+  "description": "Upload your trains to share with the world",
+  "type": "item",
+  "fields": [
+    {
+      "name": "Resource Pack",
+      "tooltip": "Resource pack containing modes that the train uses",
+      "type": "fle",
+      "period": "edit",
+      "required": true,
+      "info_link": "/resource-packs"
+    }
+  ]
+}
