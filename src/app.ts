@@ -11,13 +11,14 @@ const oAuth2Strategy = require('passport-oauth2');
 import ApolloClient from 'apollo-client'
 import gql from 'graphql-tag';
 import fetch from 'node-fetch';
-import { createHttpLink } from 'apollo-link-http'
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { setContext } from 'apollo-link-context';
+import {createHttpLink} from 'apollo-link-http'
+import {InMemoryCache} from 'apollo-cache-inmemory';
+import {setContext} from 'apollo-link-context';
 
 oAuth2Strategy.prototype.userProfile = function (accessToken: string, done: (err: any, user: { id: number }) => void) {
+    console.log("profile");
     // @ts-ignore
-    const authLink = setContext((_, { headers }) => {
+    const authLink = setContext((_, {headers}) => {
         return {
             headers: {
                 ...headers,
@@ -45,11 +46,9 @@ oAuth2Strategy.prototype.userProfile = function (accessToken: string, done: (err
                 }
             }
         `,
-        // @ts-ignore
-    }).then(data => {
+    }).then(function (data: any) {
         done(null, data.data.user);
-        // @ts-ignore
-    }).catch(error => {
+    }).catch(function (error: any) {
         done(error, null);
     });
 };
@@ -63,6 +62,7 @@ passport.deserializeUser(function (user: any, done: any) {
 });
 // @ts-ignore
 passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken: string, refreshToken: string, profile: { id: number }, cb: (err: any, user: { id: number }) => void) {
+    console.log('oauth');
     // @ts-ignore
     global.pool.getConnection(function (err: any, connection: any) {
         if (err) {
@@ -70,16 +70,39 @@ passport.use(new oAuth2Strategy(global.config.oauth, function (accessToken: stri
             return;
         }
 
-        connection.query("INSERT INTO traincarts_sharing_users (id, access_token, refresh_token) VALUES (?, ?, ?)",
-            [profile.id, accessToken, refreshToken],
-            function (err: any) {
-                connection.release();
+        connection.query("SELECT access_token FROM traincarts_sharing_users WHERE id = ?",
+            [profile.id],
+            function (err: any, results: any) {
                 if (err) {
                     console.error(err);
+                    connection.release();
                     return cb(err, null);
                 }
+                if (results.length == 0) {
+                    connection.query("INSERT INTO traincarts_sharing_users (id, access_token, refresh_token) VALUES (?, ?, ?)",
+                        [profile.id, accessToken, refreshToken],
+                        function (err: any) {
+                            connection.release();
+                            if (err) {
+                                console.error(err);
+                                return cb(err, null);
+                            }
 
-                return cb(null, {id: profile.id});
+                            return cb(null, {id: profile.id});
+                        });
+                } else {
+                    connection.query("UPDATE traincarts_sharing_users SET access_token = ?, refresh_token = ? WHERE id = ?",
+                        [accessToken, refreshToken, profile.id],
+                        function (err: any) {
+                            connection.release();
+                            if (err) {
+                                console.error(err);
+                                return cb(err, null);
+                            }
+
+                            return cb(null, {id: profile.id});
+                        });
+                }
             });
     });
 }));
@@ -101,11 +124,14 @@ app.use(express.urlencoded({extended: false}));
 app.use('/public', express.static(path.join(global.appRoot, 'public')));
 
 app.use(require('cookie-parser')());
-app.use(require('body-parser').urlencoded({extended: true}));
 
 var redis = require('redis');
 // @ts-ignore
 var redisClient = redis.createClient(global.config.redis);
+
+redisClient.on("connect", function () {
+    console.log("Redis connected");
+});
 
 redisClient.on("error", function (err: any) {
     console.error(err);
@@ -116,7 +142,8 @@ var redisStore = require('connect-redis')(session);
 
 app.use(session({
     store: new redisStore({client: redisClient}),
-    secret: config.session.secret
+    secret: config.session.secret,
+    resave: false
 }));
 
 app.use(flash());
@@ -185,7 +212,8 @@ app.use(function (req: any, res: any) {
 
     // render the error page
     res.sendStatus(req.app.locals.status);
-    res.render('error', {title: 'Error', messages: req.messages, error: error});
+    // @ts-ignore
+    res.render('error', {title: 'Error', messages: req.messages, error: error, main_url: global.config.main_site_url});
 });
 
 module.exports = app;

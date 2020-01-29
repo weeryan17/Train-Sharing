@@ -4,7 +4,9 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req: any, res: any) {
-  res.render('index', { title: 'Express' });
+  console.log(req.session);
+  // @ts-ignore
+  res.render('index', { title: 'Express', main_url: global.config.main_site_url });
 });
 
 module.exports = router;
