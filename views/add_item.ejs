@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <%- include(appRoot + '/templates/head.ejs'); %>
+    <script src="/public/js/add.js"></script>
+</head>
+<body>
+<header>
+    <%- include(appRoot + '/templates/header.ejs'); %>
+</header>
+<div class="container">
+    <br>
+    <h1 class="ts-primary ts-header-card">
+        Adding <%= type %>
+    </h1>
+    <form method="post" action="/item/add?type=<%= type %>">
+        <!-- TODO add dom purify -->
+        <div class="ts-info-card form-group">
+            <label for="name">Name</label>
+            <input type="text" maxlength="50" name="name" id="name" class="form-control ts-form-item" required>
+            <label for="info">Info</label>
+            <textarea class="form-control ts-form-item" id="info" name="info" required></textarea>
+        </div>
+        <!-- split -->
+        <%- captcha %>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+</div>
+</body>
+</html>

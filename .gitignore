@@ -7,3 +7,5 @@ sessions/
 
 src/**/*.js
 src/**/*.js.map
+
+views/add_item_*.ejs

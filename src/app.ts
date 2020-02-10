@@ -28,7 +28,8 @@ oAuth2Strategy.prototype.userProfile = function (accessToken: string, done: (err
     });
 
     const httpLink = createHttpLink({
-        uri: "http://localhost:3000/api/user",
+        // @ts-ignore
+        uri: global.config.main_url + "/api/user",
         // @ts-ignore
         fetch: fetch
     });
