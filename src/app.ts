@@ -29,7 +29,7 @@ oAuth2Strategy.prototype.userProfile = function (accessToken: string, done: (err
 
     const httpLink = createHttpLink({
         // @ts-ignore
-        uri: global.config.main_url + "/api/user",
+        uri: global.config.main_site_url + "/api/user",
         // @ts-ignore
         fetch: fetch
     });
@@ -199,6 +199,7 @@ function readRoutesDir(parent: string) {
 
 // error handler
 app.use(function (req: any, res: any) {
+    console.log("error");
     if (req.app.locals.message === undefined) {
         req.app.locals.message = "Page not found";
         req.app.locals.status = 404;
@@ -211,8 +212,6 @@ app.use(function (req: any, res: any) {
         }
     }
 
-    // render the error page
-    res.sendStatus(req.app.locals.status);
     // @ts-ignore
     res.render('error', {title: 'Error', messages: req.messages, error: error, main_url: global.config.main_site_url});
 });

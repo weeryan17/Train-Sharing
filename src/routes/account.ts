@@ -80,7 +80,8 @@ router.get("/info", function (req: any, res: any) {
                     });
 
                     const httpLink = createHttpLink({
-                        uri: "http://localhost:3000/api/user",
+                        // @ts-ignore
+                        uri: global.config.main_site_url + "/api/user",
                         // @ts-ignore
                         fetch: fetch
                     });

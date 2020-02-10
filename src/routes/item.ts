@@ -7,13 +7,15 @@ var Recaptcha = require('express-recaptcha').RecaptchaV3;
 // @ts-ignore
 const recaptcha = new Recaptcha(global.config.recaptcha.site, global.config.recaptcha.secret);
 
-router.get("/add/:type", recaptcha.middleware.render, function (req: any, res: any) {
-    if (!req.user) {
+router.get("/add/:type", recaptcha.middleware.renderWith({theme: "dark"}), function (req: any, res: any) {
+    if (req.user == undefined) {
         res.redirect('/');
         return;
     }
     var type = req.params.type;
-    fs.exists(path.join("views/add", type), function (exists: boolean) {
+    // @ts-ignore
+    var type_file = path.join(global.appRoot, "views/add", type + ".ejs");
+    fs.exists(type_file, function (exists: boolean) {
         if (!exists) {
             res.redirect('/');
             return;

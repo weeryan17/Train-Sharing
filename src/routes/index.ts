@@ -6,7 +6,7 @@ var router = express.Router();
 router.get('/', function(req: any, res: any) {
   console.log(req.session);
   // @ts-ignore
-  res.render('index', { title: 'Express', main_url: global.config.main_site_url });
+  res.render('index', { title: 'Express', main_site_url: global.config.main_site_url });
 });
 
 module.exports = router;
