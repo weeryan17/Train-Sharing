@@ -10,7 +10,7 @@
     "@types/node-fetch": "^2.5.4",
     "apollo-boost": "^0.4.7",
     "apollo-link-context": "^1.0.19",
-    "bcrypt": "^3.0.8",
+    "bcrypt": "^5.0.0",
     "connect-flash": "^0.1.1",
     "connect-redis": "^4.0.4",
     "cookie-parser": "~1.4.4",
